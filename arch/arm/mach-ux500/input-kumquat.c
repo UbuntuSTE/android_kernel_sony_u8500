@@ -13,7 +13,7 @@
 #include <linux/gpio.h>
 #include <plat/pincfg.h>
 #include "pins.h"
-#include <linux/cyttsp.h>
+#include <linux/input/cyttsp.h>
 
 #define CYTTSP_IRQ_GPIO 88
 

@@ -11,7 +11,7 @@
 #ifndef _BOARD_RIO_GRANDE_KEYPAD_H
 #define _BOARD_RIO_GRANDE_KEYPAD_H
 
-#include <plat/ske.h>
+#include <linux/platform_data/keypad-nomadik-ske.h>
 
 struct ske_keypad_platform_data *get_ske_keypad_data(void);
 
