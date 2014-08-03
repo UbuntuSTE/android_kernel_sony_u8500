@@ -27,7 +27,6 @@
 #include <mach/hardware.h>
 
 #include "db8500-prcmu.h"
-#include "dbx540-prcmu.h"
 #include "dbx500-prcmu.h"
 
 /* Offset for the firmware version within the TCPM */

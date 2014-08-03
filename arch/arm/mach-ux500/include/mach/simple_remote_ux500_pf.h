@@ -13,7 +13,7 @@
 #ifndef LINUX_SIMPLE_REMOTE_UX500_PLATFORM
 #define LINUX_SIMPLE_REMOTE_UX500_PLATFORM
 
-#include <linux/mfd/ab8500.h>
+#include <linux/mfd/abx500/ab8500.h>
 
 #define SIMPLE_REMOTE_PF_NAME "simple_remote_pf"
 
