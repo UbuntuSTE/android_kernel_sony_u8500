@@ -96,7 +96,7 @@
 #include "board-rio-grande-keypad.h"
 
 #ifdef CONFIG_TOUCHSCREEN_CYTTSP_SPI
-#include <linux/cyttsp.h>
+#include <linux/input/cyttsp.h>
 #include <linux/delay.h>
 #include <mach/touch_panel.h>
 #endif
