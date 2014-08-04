@@ -48,6 +48,16 @@ enum abx500_adc_therm {
 	ABx500_ADC_THERM_BATTEMP,
 };
 
+/*
+ * Battery type and vendor
+ */
+enum battery_chemistry {
+	TYPE1_BAT_CURVE_LOWE,
+	TYPE1_BAT_CURVE_LAUREL,
+	TYPE2_BAT_CURVE,
+	BAT_CURVE_MAX_NBR,
+};
+
 /**
  * struct abx500_res_to_temp - defines one point in a temp to res curve. To
  * be used in battery packs that combines the identification resistor with a
@@ -295,6 +305,26 @@ struct abx500_bm_data {
 	const struct abx500_bm_charger_parameters *chg_params;
 	const struct abx500_fg_parameters *fg_params;
 };
+
+/**
+ * struct device_data - SEMC device specific data
+ * @normal_cur_lvl:	charger current in normal state in mA
+ * @charge_full_design:	Maximum battery capacity in mAh
+ * @termination_curr:	battery charging termination current in mA
+ * @lowbat_threshold:	LowBat interrupt voltage threshold in mV
+ * @lowbat_hysteresis:	hysteresis between lowbat voltage and shutdown voltage
+ * @b_chem:		battery type and vendor
+ */
+struct device_data {
+	int normal_cur_lvl;
+	int charge_full_design;
+	int termination_curr;
+	int lowbat_threshold;
+	int lowbat_hysteresis;
+	enum battery_chemistry b_chem;
+};
+
+extern struct device_data device_data;
 
 struct abx500_chargalg_platform_data {
 	char **supplied_to;

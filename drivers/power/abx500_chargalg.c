@@ -22,7 +22,7 @@
 #include <linux/completion.h>
 #include <linux/workqueue.h>
 #include <linux/kobject.h>
-#include <linux/mfd/abx500.h>
+#include <linux/mfd/abx500/ab8500.h>
 #include <linux/mfd/abx500/ux500_chargalg.h>
 #include <linux/mfd/abx500/ab8500-bm.h>
 #include <linux/mfd/abx500/ab8500-gpadc.h>

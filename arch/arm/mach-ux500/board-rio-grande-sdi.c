@@ -334,7 +334,7 @@ static struct mmci_platform_data mop500_sdi4_data = {
 #endif
 };
 
-void __init mop500_sdi_init(void)
+void mop500_sdi_init(void)
 {
 	u32 periphid = 0x10480180;
 

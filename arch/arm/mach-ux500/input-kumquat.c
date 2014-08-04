@@ -152,26 +152,10 @@ struct ske_keypad_platform_data *get_ske_keypad_data(void)
 struct cyttsp_platform_data cyttsp_data = {
 	.maxx = 479,
 	.maxy = 853,
-	.maxz = 100,
-	.flags = REVERSE_Y_FLAG,	/* REVERSE_X_FLAG, REVERSE_Y_FLAG, or
-					   REVERSE_X_FLAG | REVERSE_Y_FLAG */
-	.gen = CY_GEN3,
-	.use_st = 0,
-	.use_mt = 1,
-	.mt_sync = input_mt_sync,
-	.use_trk_id = 1,
 	.use_hndshk = 0,
 	.use_sleep = 1,
-	.use_gestures = 0,
-	.use_load_file = 0,
-	.use_force_fw_update = 0,
-	.use_charger_mode = 1,
-	.gest_set = CY_GEST_GRP1 | CY_GEST_GRP2 |
-			CY_GEST_GRP3 | CY_GEST_GRP4 | CY_ACT_DIST,
 	.act_intrvl = 16,	/* 16 ms corresponds to 62,5 Hz */
-	.tch_tmout = CY_TCH_TMOUT_DFLT,
-	.lp_intrvl = CY_LP_INTRVL_DFLT,
 	.name = CY_SPI_NAME,
-	.irq_gpio = CYTTSP_IRQ_GPIO,
+	.rst_gpio = CYTTSP_IRQ_GPIO,
 };
 
