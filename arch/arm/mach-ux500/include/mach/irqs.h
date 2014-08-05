@@ -52,6 +52,8 @@
 
 #ifdef CONFIG_MACH_UX500
 #include <mach/irqs-board-mop500.h>
+#else
+#include <mach/irqs-board-semc.h>
 #endif
 
 #ifndef NR_IRQS

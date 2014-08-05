@@ -29,6 +29,7 @@
 #include <linux/mfd/dbx500-prcmu.h>
 #include <mach/display_panel.h>
 #include <plat/pincfg.h>
+#include <mach/id.h>
 #include "pins-db8500.h"
 #include "pins.h"
 
@@ -164,7 +165,7 @@ static int extern_te_update(struct mcde_display_device *ddev,
 	ret = setup_performance(ddev);
 
 	if (ddev->power_mode != MCDE_DISPLAY_PM_ON && ddev->set_power_mode) {
-		ret = ddev->set_power_mode(ddev, MCDE_DISPLAY_PM_INTERMEDIATE);
+		ret = ddev->set_power_mode(ddev, MCDE_DISPLAY_PM_STANDBY);
 		if (ret < 0) {
 			dev_warn(&ddev->dev,
 				"%s:Failed to set power mode to intermediate\n",
@@ -179,7 +180,7 @@ static int extern_te_update(struct mcde_display_device *ddev,
 		mcde_chnl_set_dirty(ddev->chnl_state);
 	}
 
-	ret = mcde_chnl_update(ddev->chnl_state, tripple_buffer);
+	ret = mcde_chnl_update(ddev->chnl_state);
 
 	/* Set sync_src back to TE0 */
 	if (switched_off_te) {
@@ -216,29 +217,17 @@ static int panel_update(struct mcde_display_device *ddev, bool tripple_buffer)
 
 	ret = setup_performance(ddev);
 
-	/* TODO: Dirty */
-	if (ddev->prepare_for_update) {
-		/* TODO: Send dirty rectangle */
-		ret = ddev->prepare_for_update(ddev, 0, 0,
-			ddev->native_x_res, ddev->native_y_res);
-		if (ret < 0) {
-			dev_warn(&ddev->dev,
-				"%s:Failed to prepare for update\n", __func__);
-			return ret;
-		}
-	}
-
 	if (ddev->power_mode != MCDE_DISPLAY_PM_ON && ddev->set_power_mode) {
-		ret = ddev->set_power_mode(ddev, MCDE_DISPLAY_PM_INTERMEDIATE);
+		ret = ddev->set_power_mode(ddev, MCDE_DISPLAY_PM_STANDBY );
 		if (ret < 0) {
 			dev_warn(&ddev->dev,
-				"%s:Failed to set power mode to intermediate\n",
+				"%s:Failed to set power mode to standby\n",
 				__func__);
 		}
 	}
 
 	/* TODO: Calculate & set update rect */
-	ret = mcde_chnl_update(ddev->chnl_state, tripple_buffer);
+	ret = mcde_chnl_update(ddev->chnl_state);
 	if (ret < 0) {
 		dev_warn(&ddev->dev, "%s:Failed to update channel\n", __func__);
 		return ret;
@@ -258,148 +247,6 @@ static int panel_update(struct mcde_display_device *ddev, bool tripple_buffer)
 
 	dev_vdbg(&ddev->dev, "Overlay updated, chnl=%d\n", ddev->chnl_id);
 
-	return 0;
-}
-
-static int panel_platform_reset(struct mcde_display_device *ddev, bool level)
-{
-	int ret = 0;
-	struct panel_platform_data *pdata = ddev->dev.platform_data;
-
-	dev_dbg(&ddev->dev, "%s: Reset display driver, level = %d\n",
-							__func__, level);
-
-	if (pdata->reset_gpio) {
-		ret = gpio_request(pdata->reset_gpio, NULL);
-		if (ret) {
-			dev_warn(&ddev->dev,
-				"%s:Failed to request gpio %d\n",
-				__func__, pdata->reset_gpio);
-			goto out;
-		}
-		gpio_set_value(pdata->reset_gpio, level);
-	}
-
-out:
-	if (pdata->reset_gpio)
-		gpio_free(pdata->reset_gpio);
-	return ret;
-}
-
-static int panel_platform_enable(struct mcde_display_device *ddev)
-{
-	int ret = 0;
-	struct panel_device *dev =
-		container_of(ddev, struct panel_device, base);
-	struct panel_platform_data *pdata = dev->base.dev.platform_data;
-
-	dev_dbg(&ddev->dev, "%s: Reset & power on display driver\n",
-								__func__);
-	if (pdata->regulator_id && !dev->regulator) {
-		dev->regulator = regulator_get(NULL, pdata->regulator_id);
-		if (IS_ERR(dev->regulator)) {
-			ret = PTR_ERR(dev->regulator);
-			dev_err(&ddev->dev,
-				"%s:Failed to get regulator '%s'\n",
-				__func__, pdata->regulator_id);
-			dev->regulator = NULL;
-			goto out;
-		}
-		if (pdata->max_supply_voltage != 0) {
-			ret = regulator_set_voltage(dev->regulator,
-						    pdata->min_supply_voltage,
-						    pdata->max_supply_voltage);
-			if (ret < 0) {
-				dev_err(&ddev->dev,
-						"%s: Failed to set voltage\n",
-						__func__);
-				goto out1;
-			}
-		}
-		ret = regulator_enable(dev->regulator);
-		if (ret < 0) {
-			dev_err(&ddev->dev, "%s:Failed to enable regulator\n",
-								__func__);
-			goto out1;
-		}
-	}
-
-	if (pdata->io_regulator_id && !dev->io_regulator) {
-		dev->io_regulator = regulator_get(NULL, pdata->io_regulator_id);
-		if (IS_ERR(dev->io_regulator)) {
-			ret = PTR_ERR(dev->io_regulator);
-			dev_err(&ddev->dev,
-				"%s:Failed to get IO regulator '%s'\n",
-				__func__, pdata->io_regulator_id);
-			dev->io_regulator = NULL;
-			goto out1;
-		}
-		/* Do not set any voltage. This is an IO regulator used by
-		 * many chips. It should not be changed */
-		ret = regulator_enable(dev->io_regulator);
-		if (ret < 0) {
-			dev_err(&ddev->dev,
-				"%s:Failed to enable IO regulator\n", __func__);
-			goto out2;
-		}
-	}
-
-	if (pdata->skip_init) {
-		dev_info(&ddev->dev,
-			"%s: Display already initialized during boot\n",
-			__func__);
-		pdata->skip_init = false;
-	}
-
-	if (dev->base.port->sync_src == MCDE_SYNCSRC_TE0)
-		ddev->update = extern_te_update;
-	else
-		ddev->update = panel_update;
-
-	/* TODO: Remove when DSI send command uses interrupts */
-	ddev->prepare_for_update = NULL;
-	return 0;
-out2:
-	regulator_put(dev->io_regulator);
-	dev->io_regulator = NULL;
-out1:
-	regulator_put(dev->regulator);
-	dev->regulator = NULL;
-out:
-	return ret;
-}
-
-static int panel_platform_disable(struct mcde_display_device *ddev)
-{
-	struct panel_device *dev =
-		container_of(ddev, struct panel_device, base);
-	struct panel_platform_data *pdata = dev->base.dev.platform_data;
-
-	dev_dbg(&ddev->dev, "%s: Reset & power off display driver\n",
-								__func__);
-
-	/* Remove DDR and APE request */
-	cancel_delayed_work(&dev->ddr_ape_timeout_work);
-	prcmu_qos_remove_requirement(PRCMU_QOS_DDR_OPP, "main_LCD");
-	pdata->ddr_is_requested = false;
-	prcmu_qos_remove_requirement(PRCMU_QOS_APE_OPP, "main_LCD_ape");
-	pdata->ape_is_requested = false;
-
-	if (dev->regulator) {
-		if (regulator_disable(dev->regulator) < 0)
-			dev_err(&ddev->dev, "%s:Failed to disable regulator\n",
-								__func__);
-		regulator_put(dev->regulator);
-		dev->regulator = NULL;
-	}
-	if (dev->io_regulator) {
-		if (regulator_disable(dev->io_regulator) < 0)
-			dev_err(&ddev->dev,
-				"%s:Failed to disable IO regulator\n",
-				__func__);
-		regulator_put(dev->io_regulator);
-		dev->io_regulator = NULL;
-	}
 	return 0;
 }
 
@@ -446,17 +293,6 @@ struct panel_device panel_display0 = {
 		.chnl_id = MCDE_CHNL_A,
 		.fifo = MCDE_FIFO_A,
 		.default_pixel_format = MCDE_OVLYPIXFMT_RGBA8888,
-
-		/* These are setup via the panel files */
-		.native_x_res = 0,
-		.native_y_res = 0,
-		.deep_standby_as_power_off = true,
-		.platform_reset = panel_platform_reset,
-		.platform_enable = panel_platform_enable,
-		.platform_disable = panel_platform_disable,
-		.dev = {
-			.platform_data = &panel_display0_pdata,
-		},
 	}
 };
 

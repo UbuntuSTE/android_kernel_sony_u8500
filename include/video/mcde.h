@@ -291,10 +291,14 @@ int mcde_chnl_set_video_mode(struct mcde_chnl_state *chnl,
 					struct mcde_video_mode *vmode);
 int mcde_chnl_set_rotation(struct mcde_chnl_state *chnl,
 					enum mcde_hw_rotation hw_rot);
+bool mcde_chnl_is_rotated_90(struct mcde_chnl_state *chnl);
 int mcde_chnl_set_power_mode(struct mcde_chnl_state *chnl,
 				enum mcde_display_power_mode power_mode);
 
 int mcde_chnl_apply(struct mcde_chnl_state *chnl);
+void mcde_chnl_set_dirty(struct mcde_chnl_state *chnl);
+void mcde_chnl_update_sync_src(struct mcde_chnl_state *chnl,
+				enum mcde_sync_src src);
 int mcde_chnl_update(struct mcde_chnl_state *chnl);
 int mcde_chnl_wait_for_next_vsync(struct mcde_chnl_state *chnl, s64 *timestamp);
 void mcde_chnl_put(struct mcde_chnl_state *chnl);
