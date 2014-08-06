@@ -60,7 +60,7 @@ config MCDE_DISPLAY_HIMAX_HX8392
 	bool "HIMAX_HX8392 display driver"
 	---help---
 	  Say Y if you have a chimei 990001267 display panel.
-
+ 
 config MCDE_DISPLAY_SONY_ACX424AKP_DSI
 	tristate "Sony acx424akp DSI display driver"
 
@@ -81,6 +81,18 @@ config MCDE_DISPLAY_BAMBOOK
 	tristate "DSI display driver for the SNDA Bambook S1"
 	---help---
 	  The Bambook S1 is SNDA Phone.
+
+config MCDE_DISPLAY_R61408_DSI_SEIKO_RB443
+       bool "Seiko RB443 display panel"
+       depends on MCDE_DISPLAY_PANEL_DSI
+
+config MCDE_DISPLAY_R61408_DSI_SAMSUNG_LMS347TF01
+       bool "Samsung LMS347TF01 display panel"
+       depends on MCDE_DISPLAY_PANEL_DSI
+
+config MCDE_DISPLAY_R61408_DSI_SONY_L5F31178
+       bool "Sony l5f31178 display panel"
+       depends on MCDE_DISPLAY_PANEL_DSI
 
 endmenu
 

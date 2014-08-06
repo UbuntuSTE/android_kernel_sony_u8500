@@ -428,13 +428,6 @@ static int opp_read(struct seq_file *s, void *p)
 			   (opp == APE_50_OPP) ? "50%" :
 			   "unknown", opp);
 		break;
-	case PRCMU_QOS_VSAFE_OPP:
-		opp = prcmu_get_vsafe_opp();
-		seq_printf(s, "%s (%d)\n",
-			   (opp == VSAFE_100_OPP) ? "100%" :
-			   (opp == VSAFE_50_OPP) ? "50%" :
-			   "unknown", opp);
-		break;
 	case PRCMU_QOS_ARM_KHZ:
 		opp = prcmu_get_arm_opp();
 		seq_printf(s, "%d kHz (OPP %s %d)\n", cpufreq_get(0),

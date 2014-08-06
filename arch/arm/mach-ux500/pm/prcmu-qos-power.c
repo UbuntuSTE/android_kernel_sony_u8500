@@ -392,24 +392,6 @@ static void update_target(int target, bool sem)
 		}
 		prcmu_debug_ddr_opp_log(op);
 		break;
-	case PRCMU_QOS_VSAFE_OPP:
-			switch (extreme_value) {
-			case 50:
-				op = VSAFE_50_OPP;
-				pr_debug("prcmu qos: set vsafe opp to 50%%\n");
-				break;
-			case 100:
-				op = VSAFE_100_OPP;
-				pr_debug("prcmu qos: set vsafe opp to 100%%\n");
-				break;
-			default:
-			  pr_err("prcmu qos: Incorrect vsafe target value (%d)",
-				       extreme_value);
-				goto unlock_and_return;
-			}
-			prcmu_set_vsafe_opp(op);
-			prcmu_debug_vsafe_opp_log(op);
-			break;
 	case PRCMU_QOS_APE_OPP:
 		switch (extreme_value) {
 		case 50:
