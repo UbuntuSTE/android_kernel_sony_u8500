@@ -892,10 +892,7 @@ void __init prcmu_early_init(struct prcmu_tcdm_map *map, bool is_ux540_family)
 		iounmap(tcpm_base);
 	}
 
-	if (is_ux540_family)
-		data =  dbx540_prcmu_early_init(map);
-	else
-		data = db8500_prcmu_early_init(map);
+	data = db8500_prcmu_early_init(map);
 
 	if (data == NULL)
 		return;

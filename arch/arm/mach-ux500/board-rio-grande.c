@@ -605,18 +605,6 @@ static struct lsm303dlhc_acc_lt_platform_data
 };
 #endif
 
-static struct ab3550_platform_data ab3550_plf_data = {
-        .irq = {
-                .base = 0,
-                .count = 0,
-        },
-        .dev_data = {
-        },
-        .dev_data_sz = {
-        },
-        .init_settings = NULL,
-        .init_settings_sz = 0,
-};
 
 #if defined(CONFIG_LM3560) || defined(CONFIG_LM3561)
 #define LM3560_HW_RESET_GPIO 6
@@ -1133,15 +1121,6 @@ static struct i2c_board_info __initdata pdp_i2c0_devices[] = {
 		.platform_data = &av8100_plat_data,
 	},
 #endif
-};
-
-static struct i2c_board_info __initdata pdp_i2c1_devices[] = {
-	{
-		/* AB3550 */
-		I2C_BOARD_INFO("ab3550", 0x94 >> 1),
-		.irq = -1,
-		.platform_data = &ab3550_plf_data,
-	},
 #ifdef CONFIG_INPUT_LPS331AP
 	{
 		I2C_BOARD_INFO(LPS331AP_PRS_DEV_NAME, 0xB8 >> 1),
@@ -1545,10 +1524,10 @@ static int cyttsp_init(int on, struct device *dev)
 			ret = -ENODEV;
 			goto regulator_set_failed;
 		}
-		ret = gpio_request(data->irq_gpio, "CYTTSP IRQ GPIO");
+		ret = gpio_request(data->rst_gpio, "CYTTSP IRQ GPIO");
 		if (ret) {
 			dev_err(dev, "%s: Failed to request GPIO %d\n",
-				__func__, data->irq_gpio);
+				__func__, data->rst_gpio);
 			ret = -ENODEV;
 			goto irq_gpio_req_failed;
 		}
@@ -1566,7 +1545,7 @@ static int cyttsp_init(int on, struct device *dev)
 			ret = -ENODEV;
 			goto cs_gpio_req_failed;
 		}
-		gpio_direction_input(data->irq_gpio);
+		gpio_direction_input(data->rst_gpio);
 		gpio_direction_output(CYTTSP_XRES_GPIO, 1);
 		gpio_direction_output(CYTTSP_SPI_CS_GPIO, 1);
 	} else if (!on && cyttsp_reg) {
@@ -1574,7 +1553,7 @@ static int cyttsp_init(int on, struct device *dev)
 cs_gpio_req_failed:
 		gpio_free(CYTTSP_XRES_GPIO);
 xres_gpio_req_failed:
-		gpio_free(data->irq_gpio);
+		gpio_free(data->rst_gpio);
 irq_gpio_req_failed:
 		regulator_disable_handler(cyttsp_reg, __func__);
 regulator_set_failed:
@@ -1933,7 +1912,6 @@ U8500_I2C_CONTROLLER(3,	0xe, 1, 8, 400000, 200, I2C_FREQ_MODE_FAST);
 static void __init mop500_i2c_init(struct device *parent)
 {
 	db8500_add_i2c0(parent, &u8500_i2c0_data);
-	db8500_add_i2c1(parent, &u8500_i2c1_data);
 	db8500_add_i2c2(parent, &u8500_i2c2_data);
 	db8500_add_i2c3(parent, &u8500_i2c3_data);
 }
@@ -2215,7 +2193,7 @@ static void __init mop500_spi_init(struct device *parent)
 #if defined(CONFIG_TOUCHSCREEN_CYTTSP_SPI) ||			\
 	defined(CONFIG_SEMC_GENERIC_RMI4_SPI_ADAPTOR) ||	\
 	defined(CONFIG_SEMC_GENERIC_RMI4_SPI_ADAPTOR_MODULE)
-	db8500_add_spi3(&pdp_spi3_data);
+	db8500_add_spi3(parent, &pdp_spi3_data);
 #endif
 }
 
@@ -2334,7 +2312,6 @@ static struct amba_pl011_data uart0_plat = {
 #endif
 	.init = ux500_uart0_init,
 	.exit = ux500_uart0_exit,
-	.reset = ux500_uart0_reset,
 };
 
 static struct amba_pl011_data uart1_plat = {
@@ -2386,9 +2363,7 @@ static void __init cyttsp_data_set_callbacks(struct cyttsp_platform_data *pdata)
 #ifdef CONFIG_TOUCHSCREEN_CYTTSP_KEY
 	pdata->cust_spec = cyttsp_key_rpc_callback;
 #endif /* CONFIG_TOUCHSCREEN_CYTTSP_KEY */
-	pdata->wakeup = cyttsp_wakeup;
 	pdata->init = cyttsp_init;
-	pdata->reset = cyttsp_xres;
 }
 #endif /* CONFIG_TOUCHSCREEN_CYTTSP_SPI */
 
@@ -2404,7 +2379,7 @@ static void __init mop500_init_machine(void)
 
 	u8500_init_devices();
 
-	mop500_pins_init();
+	mop500_pinmaps_init();
 
 	mop500_regulator_init();
 
@@ -2445,7 +2420,6 @@ static void __init mop500_init_machine(void)
 	platform_device_register(&ab8500_device);
 
 	i2c_register_board_info(0, ARRAY_AND_SIZE(pdp_i2c0_devices));
-	i2c_register_board_info(1, ARRAY_AND_SIZE(pdp_i2c1_devices));
 	i2c_register_board_info(2, ARRAY_AND_SIZE(pdp_i2c2_devices));
 	i2c_register_board_info(3, ARRAY_AND_SIZE(pdp_i2c3_devices));
 
@@ -2472,7 +2446,6 @@ int pins_for_u9500(void)
 
 MACHINE_START(NOMADIK, "riogrande")
 	/* Maintainer: Sony Ericsson */
-	.boot_params	= 0x00000100,
 	.map_io		= u8500_map_io,
 	.reserve	= riogrande_reserve,
 	.init_irq	= ux500_init_irq,

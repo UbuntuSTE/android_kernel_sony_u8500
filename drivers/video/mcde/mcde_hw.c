@@ -3472,8 +3472,8 @@ int mcde_chnl_set_rotation(struct mcde_chnl_state *chnl,
 
 bool mcde_chnl_is_rotated_90(struct mcde_chnl_state *chnl)
 {
-	if (chnl->rotation == MCDE_DISPLAY_ROT_90_CCW ||
-			chnl->rotation == MCDE_DISPLAY_ROT_90_CW)
+	if (chnl->hw_rot == MCDE_DISPLAY_ROT_90_CCW ||
+			chnl->hw_rot == MCDE_DISPLAY_ROT_90_CW)
 		return true;
 	else
 		return false;
